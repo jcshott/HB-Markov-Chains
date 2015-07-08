@@ -2,26 +2,28 @@ import sys
 import random
 
 
-def make_chains(corpus):
+def make_chains(corpus, n):
     """Takes input text as string; returns dictionary of markov chains."""
     # print corpus
-    bigram_dict = {}
+    ngram_dict = {}
     # Create a list of words in order by splitting on spaces
     input_words = corpus.split()
 
     # Iterate over word list and create tuple keys for dictionary
-    for index in xrange(len(input_words) - 2):
-        bigram = (input_words[index], input_words[index + 1])
-
+    for index in xrange(len(input_words) - n):
+        ngram = ()
+        for index_n in xrange(n):
+            ngram = ngram + (input_words[index + index_n],)
+        # print ngram
         # For each tuple, check if the tuple is already a key in the dict
         # If it is a key, add to its value. If it is not a key, make it key, with new list
-        if bigram in bigram_dict:
-            bigram_dict[bigram].append(input_words[index+2]) 
+        if ngram in ngram_dict:
+            ngram_dict[ngram].append(input_words[index + n]) 
         else:
-            bigram_dict[bigram] = []
-            bigram_dict[bigram].append(input_words[index+2])
-   # print bigram_dict
-    return bigram_dict
+            ngram_dict[ngram] = []
+            ngram_dict[ngram].append(input_words[index + n])
+    # print ngram_dict
+    return ngram_dict
 
 
 def make_text(chains):
@@ -35,20 +37,28 @@ def make_text(chains):
     while not start_key[0][0].isupper(): 
         start_key = random.choice(key_list)
     key = start_key
-    random_list_for_string = [key[0], key[1]]
-    # Until a bigram is not present in the dict, generate random next word from the values associated
-    # with that bigram
+    random_list_for_string = []
+
+    char_count = 0
+    for n in range(len(key)):
+        random_list_for_string.append(key[n])
+        char_count += len(key[n]) + 1
+    # Until a ngram is not present in the dict, generate random next word from the values associated
+    # with that ngram
     next_word = " "
     # print "next word", next_word
-    while key in chains:
+    while key in chains and char_count <= 140:
         value_list = chains[key]
        # random_index = random.randint(0, (len(value_list) - 1))
         next_word = random.choice(value_list)
 
         random_list_for_string.append(next_word)
-        key = (key[1], next_word)
+        char_count += len(next_word) + 1
+        temp_key = ()
+        for n in range(1, len(key)):
+            temp_key += (key[n],)
         # print "next word", next_word
-
+        key = temp_key + (next_word,)
         #do something
     # print random_list_for_string
     final_list_for_string = []
@@ -77,7 +87,7 @@ for i in range(1, len(sys.argv)):
 # file_handle_2 = open(input_text_2)
 
 # Get a Markov chain
-chain_dict = make_chains(text_of_all_files)
+chain_dict = make_chains(text_of_all_files, 2)
 
 # Produce random text
 random_text = make_text(chain_dict)
